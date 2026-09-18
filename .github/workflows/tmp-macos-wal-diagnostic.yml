@@ -1,0 +1,32 @@
+# TEMPORARY DIAGNOSTIC WORKFLOW - lives only on codex/diag-macos-wal-preflight and is
+# deleted with the branch. It answers one question that only a macOS runner can answer:
+# which step of the read-only preflight open fails there, and with which sqlite error.
+name: tmp macos wal diagnostic
+
+on:
+  push:
+    branches: [codex/diag-macos-wal-preflight]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: probe ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup project Bun
+        uses: ./.github/actions/setup-project-bun
+
+      - name: Probe the read-only WAL open
+        run: bun run scripts/ci/tmp-macos-wal-preflight-diagnostic.ts
